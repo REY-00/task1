@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_rest_jsonapi import Api, ResourceDetail, ResourceList, ResourceRelationship
 from flask_rest_jsonapi.exceptions import ObjectNotFound
@@ -10,24 +11,29 @@ from marshmallow_jsonapi import fields
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
+file_path = os.path.abspath(os.getcwd())+"/database.db"
+
+
 # Initialize SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tmp/test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:'+file_path
 db = SQLAlchemy(app)
 
+app.app_context().push()
+
 # Create data storage in database
-class Board(db.model):
+class Board(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  date_creation = db.Column(db.Timestamp)
-  date_modified = db.Column(db.Timestamp)
+  date_creation = db.Column(db.DateTime)
+  date_modified = db.Column(db.DateTime)
   status = db.Column(db.String)
 
 
-class Task(db.model):
+class Task(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  date_creation = db.Column(db.Timestamp)
-  date_modified = db.Column(db.Timestamp)
-  status = db.Column(db.Bool)
-  text = db.Column(db.Bool)
+  date_creation = db.Column(db.DateTime)
+  date_modified = db.Column(db.DateTime)
+  status = db.Column(db.Boolean)
+  text = db.Column(db.Boolean)
   board = db.Column(db.Integer, db.ForeignKey('board.id'))
 
 db.create_all()
@@ -80,8 +86,10 @@ class TaskList(ResourceList):
                 'model': Task}
 
 # Create endpoints
+api = Api(app)
+api.route(BoardList, 'board_list', '/boards')
+api.route(BoardDetail, 'Board_detail', '/boards/<int:id>')
+api.route(TaskList, 'task_list', '/tasks')
 
-
-@app.route('/')
-def hello():
-  return 'Hello, World!'
+if __name__ == '__main__':
+  app.run(debug=true)
